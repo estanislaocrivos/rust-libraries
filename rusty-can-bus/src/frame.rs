@@ -1,11 +1,11 @@
 use crate::errno;
 
 pub struct CanFrame {
-    id: u32,        // ID. Determines priority. 11 bits (standard) or 29 bits (extended)
-    extended: bool, // Extended ID. True: extended ID. False: standard ID
-    rtr: bool, // Remote Transmission Request. True: frame contains request. False: frame contains data
-    dlc: u8,   // Data Length Code. Data length in bytes
-    data: [u8; 8], // Data array
+    id: u32,          // ID. Determines priority. 11 bits (standard) or 29 bits (extended)
+    extended: bool,   // Extended ID. True: extended ID. False: standard ID
+    rtr: bool, // Remote Transmission Request. True: frame contains request. False: frame contains payload
+    dlc: u8,   // payload Length Code. payload length in bytes
+    payload: [u8; 8], // payload array
 }
 
 impl CanFrame {
@@ -14,14 +14,14 @@ impl CanFrame {
         extended: bool,
         rtr: bool,
         dlc: u8,
-        data: &[u8; 8],
+        payload: &[u8; 8],
     ) -> Result<CanFrame, errno::CanError> {
         if extended {
-            if id > 2 ^ 29 - 1 {
+            if id > (1 << 29) - 1 {
                 return Err(errno::CanError::InvalidId);
             }
         } else {
-            if id > 2 ^ 11 - 1 {
+            if id > (1 << 11) - 1 {
                 return Err(errno::CanError::InvalidId);
             }
         }
@@ -33,41 +33,43 @@ impl CanFrame {
             extended,
             rtr,
             dlc,
-            data: *data,
+            payload: *payload,
         });
     }
 
-    pub fn id(&self) -> u32 {
+    pub fn get_id(&self) -> u32 {
         return self.id;
     }
 
-    pub fn is_extended(&self) -> bool {
+    pub fn get_is_extended(&self) -> bool {
         return self.extended;
     }
 
-    pub fn is_standard(&self) -> bool {
+    pub fn get_is_standard(&self) -> bool {
         return !self.extended;
     }
 
-    pub fn rtr(&self) -> bool {
+    pub fn get_rtr(&self) -> bool {
         return self.rtr;
     }
 
-    pub fn dlc(&self) -> u8 {
+    pub fn get_dlc(&self) -> u8 {
         return self.dlc;
     }
 
-    pub fn payload(&self) -> &[u8] {
-        return &self.data;
+    pub fn get_payload(&self) -> &[u8] {
+        return &self.payload;
     }
 
-    pub fn payload_mut(&mut self) -> &mut [u8] {
-        return &mut self.data;
+    pub fn get_payload_mut(&mut self) -> &mut [u8] {
+        return &mut self.payload;
     }
 }
 
 #[cfg(test)]
 mod test {
     use super::*;
-    fn test() {}
+    fn test_new_standard_can_frame() {
+        let canframe = CanFrame::new(0, false, false, 1, &[0; 8]);
+    }
 }
