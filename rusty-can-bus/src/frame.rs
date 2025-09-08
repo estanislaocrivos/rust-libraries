@@ -1,6 +1,6 @@
 use crate::errno;
 
-pub struct CanFrame {
+struct CanFrame {
     id: u32,          // ID. Determines priority. 11 bits (standard) or 29 bits (extended)
     extended: bool,   // Extended ID. True: extended ID. False: standard ID
     rtr: bool, // Remote Transmission Request. True: frame contains request. False: frame contains payload
@@ -69,7 +69,15 @@ impl CanFrame {
 #[cfg(test)]
 mod test {
     use super::*;
+
+    #[test]
     fn test_new_standard_can_frame() {
-        let canframe = CanFrame::new(0, false, false, 1, &[0; 8]);
+        let can_frame =
+            CanFrame::new(0, false, false, 1, &[0; 8]).expect("Error: CanFrame creation failed.");
+        assert_eq!(can_frame.get_id(), can_frame.id);
+        assert_eq!(can_frame.get_is_extended(), can_frame.extended);
+        assert_eq!(can_frame.get_rtr(), can_frame.rtr);
+        assert_eq!(can_frame.get_dlc(), can_frame.dlc);
+        assert_eq!(can_frame.get_payload(), can_frame.payload);
     }
 }
