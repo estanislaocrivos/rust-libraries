@@ -11,4 +11,7 @@ pub enum FramingProtError {
     ConfigError,
     PhyBusy,
     PhyTimeout,
+    InvalidFrame,
+    NoPayload,
+    ChecksumMismatch,
 }

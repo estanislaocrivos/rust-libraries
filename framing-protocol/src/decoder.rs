@@ -14,8 +14,8 @@ pub enum DecodeState {
 
 pub struct Decoder<C: Checksum> {
     state: DecodeState,
-    frame_counter: usize,
     payload: [u8; MAX_FRAME_SIZE],
+    frame_counter: usize,
     payload_counter: usize,
     checksum: u16,
     cfg: FramingConfig<C>,
@@ -33,10 +33,27 @@ impl<C: Checksum> Decoder<C> {
         };
     }
 
+    fn check_frame(&self) -> Result<(), FramingProtError> {
+        // Calcula el checksum del frame recibido y lo compara con el recibido
+        let calc = self
+            .cfg
+            .checksum
+            .calculate_checksum(&self.payload[..self.payload_counter], self.payload_counter)?;
+        if calc == self.checksum {
+            Ok(())
+        } else {
+            Err(FramingProtError::ChecksumMismatch)
+        }
+    }
+
     pub fn push_byte(&mut self, byte: &u8) -> Result<usize, FramingProtError> {
         match self.state {
             DecodeState::WaitSTX => {
-                self.state = DecodeState::ReceivingPayload;
+                if *byte == self.cfg.stx {
+                    self.state = DecodeState::ReceivingPayload;
+                    self.payload_counter = 0;
+                    self.checksum = 0;
+                }
             }
             DecodeState::ReceivingPayload => {
                 self.payload[self.payload_counter] = *byte;
@@ -46,26 +63,45 @@ impl<C: Checksum> Decoder<C> {
                 }
             }
             DecodeState::WaitETX => {
-                self.state = DecodeState::WaitChecksumHi;
+                if *byte == self.cfg.etx {
+                    self.state = DecodeState::WaitChecksumHi;
+                } else {
+                    self.reset();
+                    return Err(FramingProtError::InvalidFrame);
+                }
             }
             DecodeState::WaitChecksumHi => {
-                self.checksum |= (*byte << 8) as u16;
+                self.checksum = (*byte as u16) << 8;
                 self.state = DecodeState::WaitChecksumLo;
             }
             DecodeState::WaitChecksumLo => {
                 self.checksum |= *byte as u16;
+                // Validar frame
+                let res = self.check_frame();
                 self.state = DecodeState::WaitSTX;
+                if res.is_err() {
+                    self.payload_counter = 0;
+                }
+                return res.map(|_| self.frame_counter);
             }
         }
         self.frame_counter += 1;
         Ok(self.frame_counter)
     }
 
-    // pub fn try_pop_payload(&mut self) -> Result<&mut [u8], FramingProtError> {
-    //     if self.payload_counter == self.cfg.max_payload_size {
-    //         match checksum::Checksum::calculate_checksum(&self, self.pa, payload_size) {}
-    //     }
-    // }
+    pub fn try_pop_payload(&mut self) -> Result<&[u8], FramingProtError> {
+        if self.payload_counter > 0 {
+            let slice = &self.payload[..self.payload_counter];
+            self.payload_counter = 0;
+            Ok(slice)
+        } else {
+            Err(FramingProtError::NoPayload)
+        }
+    }
 
-    // pub fn reset(&mut self);
+    pub fn reset(&mut self) {
+        self.state = DecodeState::WaitSTX;
+        self.payload_counter = 0;
+        self.checksum = 0;
+    }
 }
