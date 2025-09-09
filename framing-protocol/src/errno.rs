@@ -1,10 +1,12 @@
 #[derive(Debug)]
-pub enum FrameError {
+pub enum FramingProtError {
     Overflow,
     InvalidChecksum,
     UnexpectedByte,
     TruncatedFrame,
     PayloadTooLong,
+    InvalidSize,
+    OutputFrameTooShort,
     EscapeSequence,
     ConfigError,
     PhyBusy,
