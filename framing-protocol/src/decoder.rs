@@ -34,7 +34,6 @@ impl<C: Checksum> Decoder<C> {
     }
 
     fn check_frame(&self) -> Result<(), FramingProtError> {
-        // Calcula el checksum del frame recibido y lo compara con el recibido
         let calc = self
             .cfg
             .checksum
@@ -104,4 +103,14 @@ impl<C: Checksum> Decoder<C> {
         self.payload_counter = 0;
         self.checksum = 0;
     }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::config;
+
+    use super::*;
+
+    #[test]
+    fn test() {}
 }
