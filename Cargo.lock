@@ -99,6 +99,10 @@ dependencies = [
 ]
 
 [[package]]
+name = "lcd-16-by-2"
+version = "0.1.0"
+
+[[package]]
 name = "memchr"
 version = "2.7.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
