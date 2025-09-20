@@ -158,7 +158,7 @@ where
     }
 
     fn write_command_8_bit(&mut self, command: u8) {
-        self.write_nibble(command);
+        self.write_byte(command);
         self.assert_command_sequence();
     }
 
@@ -178,5 +178,47 @@ where
 
     /* ------------------------------------------------------------------------------------------ */
 
-    pub fn init(&mut self) {}
+    pub fn init(&mut self) {
+        // 4-bit mode first
+        self.write_nibble(0x03);
+
+        self.assert_command_sequence();
+        self.delay.delay_ms(5);
+
+        self.write_nibble(0x03);
+
+        self.assert_command_sequence();
+        self.delay.delay_ms(150);
+
+        self.write_nibble(0x03);
+
+        self.assert_command_sequence();
+        self.delay.delay_ms(150);
+
+        self.write_nibble(0x02);
+
+        self.assert_command_sequence();
+        self.delay.delay_ms(150);
+
+        // 8-bit mode now
+        self.write_command_8_bit(0x28);
+        self.delay.delay_ms(2);
+
+        self.write_command_8_bit(0x08);
+        self.delay.delay_ms(2);
+
+        self.write_command_8_bit(0x01);
+        self.delay.delay_ms(2);
+
+        self.write_command_8_bit(0x06);
+        self.delay.delay_ms(2);
+
+        self.write_command_8_bit(0x0C);
+        self.delay.delay_ms(2);
+
+        self.write_command_8_bit(0x01);
+        self.delay.delay_ms(2);
+    }
+
+    /* ------------------------------------------------------------------------------------------ */
 }
