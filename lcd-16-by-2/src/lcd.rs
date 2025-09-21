@@ -17,6 +17,7 @@ where
 {
     use_i2c_bus_converter: bool,
     eight_bit_bus_mode: bool,
+    is_initialized: bool,
     rs: RS,
     en: EN,
     d0: D0,
@@ -63,6 +64,7 @@ where
         Self {
             use_i2c_bus_converter,
             eight_bit_bus_mode,
+            is_initialized: false,
             rs,
             en,
             d0,
@@ -181,7 +183,7 @@ where
 
     // ------------------------------------------------------------------------------------------ //
 
-    pub fn init(&mut self) {
+    pub fn initialize(&mut self) {
         // 4-bit mode first
         self.write_nibble(0x03);
 
@@ -221,6 +223,8 @@ where
 
         self.write_command_8_bit(0x01);
         self.delay.delay_ms(2);
+
+        self.is_initialized = true;
     }
 
     // ------------------------------------------------------------------------------------------ //
