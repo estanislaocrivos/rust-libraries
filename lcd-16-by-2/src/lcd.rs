@@ -113,13 +113,13 @@ where
         self.d0
             .set_state(Self::translate_state(((byte >> 0) & 0x01) != 0))
             .unwrap();
-        self.d4
+        self.d1
             .set_state(Self::translate_state(((byte >> 1) & 0x01) != 0))
             .unwrap();
-        self.d4
+        self.d2
             .set_state(Self::translate_state(((byte >> 2) & 0x01) != 0))
             .unwrap();
-        self.d4
+        self.d3
             .set_state(Self::translate_state(((byte >> 3) & 0x01) != 0))
             .unwrap();
         self.d4
