@@ -1,6 +1,12 @@
 use embedded_hal::delay::DelayNs;
 use embedded_hal::digital::{OutputPin, PinState};
 
+pub enum LcdInterfaceType {
+    EightBitInterface,
+    FourBitInterface,
+    I2CInterface,
+}
+
 pub struct Lcd<RS, EN, D0, D1, D2, D3, D4, D5, D6, D7, DELAY>
 where
     RS: OutputPin,
@@ -15,8 +21,7 @@ where
     D7: OutputPin,
     DELAY: DelayNs,
 {
-    use_i2c_bus_converter: bool,
-    eight_bit_bus_mode: bool,
+    bus_interface_type: LcdInterfaceType,
     is_initialized: bool,
     rs: RS,
     en: EN,
@@ -47,8 +52,7 @@ where
     DELAY: DelayNs,
 {
     pub fn new(
-        use_i2c_bus_converter: bool,
-        eight_bit_bus_mode: bool,
+        bus_interface_type: LcdInterfaceType,
         rs: RS,
         en: EN,
         d0: D0,
@@ -62,8 +66,7 @@ where
         delay: DELAY,
     ) -> Self {
         Self {
-            use_i2c_bus_converter,
-            eight_bit_bus_mode,
+            bus_interface_type,
             is_initialized: false,
             rs,
             en,
@@ -165,6 +168,16 @@ where
     fn write_command_8_bit(&mut self, command: u8) {
         self.write_byte(command);
         self.assert_command_sequence();
+    }
+
+    fn write_command_i2c(&mut self, command: u8) {}
+
+    fn write_command(&mut self, command: u8) {
+        match self.bus_interface_type {
+            LcdInterfaceType::EightBitInterface => self.write_command_8_bit(command),
+            LcdInterfaceType::FourBitInterface => self.write_command_4_bit(command),
+            LcdInterfaceType::I2CInterface => self.write_command_i2c(command),
+        }
     }
 
     // ------------------------------------------------------------------------------------------ //
