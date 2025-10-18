@@ -1,4 +1,4 @@
-pub struct RingBuffer<'a> {
+struct RingBuffer<'a> {
     buffer: &'a mut [u8],
     size: usize,
     head: usize,
@@ -8,7 +8,7 @@ pub struct RingBuffer<'a> {
 }
 
 impl<'a> RingBuffer<'a> {
-    fn new(buffer: &'a mut [u8], size: usize, overwrite: bool) -> RingBuffer<'a> {
+    pub fn new(buffer: &'a mut [u8], size: usize, overwrite: bool) -> RingBuffer<'a> {
         return RingBuffer {
             buffer,
             size,
@@ -19,7 +19,7 @@ impl<'a> RingBuffer<'a> {
         };
     }
 
-    fn push(&mut self, data: &[u8], data_size: usize) {
+    pub fn push(&mut self, data: &[u8], data_size: usize) {
         if !self.was_initialized {
             return;
         }
@@ -45,7 +45,7 @@ impl<'a> RingBuffer<'a> {
         }
     }
 
-    fn pop(&mut self, dest: &mut [u8], dest_size: usize) {
+    pub fn pop(&mut self, dest: &mut [u8], dest_size: usize) {
         if !self.was_initialized {
             return;
         }
@@ -63,14 +63,14 @@ impl<'a> RingBuffer<'a> {
         }
     }
 
-    fn is_empty(&self) -> bool {
+    pub fn is_empty(&self) -> bool {
         if !self.was_initialized {
             return false;
         }
         return self.tail == self.head;
     }
 
-    fn is_full(&self) -> bool {
+    pub fn is_full(&self) -> bool {
         let mut next_head = self.head + 1;
         if next_head == self.size {
             next_head = 0;
@@ -78,7 +78,7 @@ impl<'a> RingBuffer<'a> {
         return next_head == self.tail;
     }
 
-    fn available(&self) -> usize {
+    pub fn available(&self) -> usize {
         if !self.was_initialized {
             return 0;
         }
@@ -89,5 +89,29 @@ impl<'a> RingBuffer<'a> {
             used = self.size - (self.tail - self.head);
         }
         return self.size - used;
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_create_ring_buffer() {
+        let mut buffer = [0u8; 256]; // Array de 256 bytes inicializado en 0
+        let ring = RingBuffer::new(&mut buffer, 256, false);
+        assert_eq!(ring.head, 0);
+        assert_eq!(ring.tail, 0);
+        assert_eq!(ring.size, 256);
+        assert_eq!(ring.overwrite, false);
+    }
+
+    #[test]
+    fn test_fill_ring_buffer() {
+        let mut buffer = [0u8; 256]; // Array de 256 bytes inicializado en 0
+        let mut ring = RingBuffer::new(&mut buffer, 256, false);
+        let data = b"Hello, World!";
+        ring.push(data, data.len());
+        assert_eq!(ring.available(), 256 - data.len());
     }
 }
