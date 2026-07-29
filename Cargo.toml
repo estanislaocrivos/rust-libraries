@@ -1,8 +1,10 @@
 [workspace]
 resolver = "3"
-members = [ "libraries/crc",
+members = [
+    "libraries/crc",
     "libraries/framing-protocol",
     "libraries/lcd-16-by-2",
     "libraries/ring-buffer",
     "libraries/rusty-can-bus",
+    "libraries/uip",
 ]
